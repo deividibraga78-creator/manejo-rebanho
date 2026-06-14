@@ -1,5 +1,6 @@
 
 // --- IMPORTAÇÕES ---
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Alert, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
 import * as Print from 'expo-print';
