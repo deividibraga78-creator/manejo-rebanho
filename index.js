@@ -698,7 +698,15 @@ useEffect(() => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#121212', paddingTop: 20 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#121212', 
+    paddingTop: 20,
+    minHeight: '100vh',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, marginVertical: 10 },
   tituloPrincipal: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
   scrollContainer: { paddingHorizontal: 15 },
