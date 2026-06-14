@@ -14,15 +14,9 @@ export default function App() {
   const [animais, setAnimais] = useState([]);
   const [usuarioInput, setUsuarioInput] = useState('');
   const [senhaInput, setSenhaInput] = useState('');
-
-  const [filtroDataCorte, setFiltroDataCorte] = useState('');
-  const [animaisFiltrados, setAnimaisFiltrados] = useState([]);
-  const [estaLogado, setEstaLogado] = useState(false);
-
-  
   
   // --- FUNÇÕES DE APOIO ---
-  const realizarLogin = () => {
+  function realizarLogin() {
     if (usuarioInput === 'admin' && senhaInput === 'admin') setEstaLogado(true);
     else Alert.alert('Erro', 'Usuário ou senha incorretos.');
   }
