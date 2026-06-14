@@ -33,6 +33,8 @@ export default function App() {
   const [dataEntrada, setDataEntrada] = useState(''); 
   const [custoDiario, setCustoDiario] = useState('');
   const [piqueManejo, setPiqueManejo] = useState('Campo');
+  const [usuarioInput, setUsuarioInput] = useState(''); 
+  const [senhaInput, setSenhaInput] = useState('');     
   // --- EFEITOS E FUNÇÕES DE AUTENTICAÇÃO ---
 
   useEffect(() => {
@@ -65,6 +67,9 @@ export default function App() {
     } else {
       exibirAlerta('Erro de Acesso', 'Usuário ou senha incorretos.');
     }
+    const exibirAlerta = (titulo, mensagem) => {
+    Alert.alert(titulo, mensagem);
+  };
   };
 
   const loginComGoogle = async () => {
