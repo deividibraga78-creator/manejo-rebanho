@@ -23,6 +23,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function App() {
   // Memórias do formulário de entrada (Cadastro)
+  const [estaLogado, setEstaLogado] = useState(false);
   const [idEmEdicao, setIdEmEdicao] = useState(null);
   const [brinco, setBrinco] = useState('');
   const [raca, setRaca] = useState('');
@@ -32,6 +33,95 @@ export default function App() {
   const [dataEntrada, setDataEntrada] = useState(''); 
   const [custoDiario, setCustoDiario] = useState('');
   const [piqueManejo, setPiqueManejo] = useState('Campo');
+  // --- EFEITOS E FUNÇÕES DE AUTENTICAÇÃO ---
+
+  useEffect(() => {
+    if (estaLogado) {
+      carregarDadosOnline();
+    }
+  }, [estaLogado]);
+
+  useEffect(() => {
+    supabase.auth.signOut(); 
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setEstaLogado(true);
+      } else {
+        setEstaLogado(false);
+      }
+    });
+
+    return () => {
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, []);
+
+  const realizarLogin = () => {
+    if (usuarioInput.trim() === 'admin' && senhaInput === 'admin') {
+      setEstaLogado(true); 
+    } else {
+      exibirAlerta('Erro de Acesso', 'Usuário ou senha incorretos.');
+    }
+  };
+
+  const loginComGoogle = async () => {
+    try {
+      const redirectUrl = 'https://bonhkjxiujzewagjizsr.supabase.co/auth/v1/callback'; 
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: Platform.OS === 'web' ? true : false,
+        },
+      });
+
+      if (error) throw error;
+
+      if (Platform.OS !== 'web' && data?.url && WebBrowser) {
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+        if (result.type === 'success') {
+          setEstaLogado(true);
+        }
+      }
+    } catch (error) {
+      exibirAlerta('Erro Google Auth', error.message || 'Não foi possível conectar.');
+    }
+  };
+  return (
+    <View style={styles.container}>
+      {estaLogado ? (
+        // AQUI VAI TODO O CONTEÚDO DO SEU APLICATIVO (O painel que você já vê)
+        <ScrollView>
+          {/* ... seus componentes, botões e listas aqui ... */}
+        </ScrollView>
+      ) : (
+        // AQUI VAI A SUA TELA DE LOGIN (O que deve aparecer se não estiver logado)
+        <View style={styles.telaLogin}>
+          <Text>Login</Text>
+          <TextInput 
+             placeholder="Usuário" 
+             onChangeText={setUsuarioInput} // Certifique-se de que essa variável existe
+          />
+          <TextInput 
+             placeholder="Senha" 
+             secureTextEntry 
+             onChangeText={setSenhaInput} // Certifique-se de que essa variável existe
+          />
+          <TouchableOpacity onPress={realizarLogin}>
+             <Text>Entrar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={loginComGoogle}>
+             <Text>Entrar com Google</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
   
   // --- ESTADO PARA MEDICAMENTOS ---
   const [medicamentos, setMedicamentos] = useState([{ id: Math.random().toString(), nome: '', data: '', carencia: '' }]);
@@ -717,7 +807,7 @@ useEffect(() => {
       </ScrollView>
     </SafeAreaView>
   );
-}
+
 
 const styles = StyleSheet.create({
   container: { 
