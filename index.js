@@ -14,11 +14,12 @@ export default function App() {
   const [animais, setAnimais] = useState([]);
   const [usuarioInput, setUsuarioInput] = useState('');
   const [senhaInput, setSenhaInput] = useState('');
-  const [filtroSetor, setFiltroSetor] = useState('Todos');
-  const [filtroDataCorte, setFiltroDataCorte] = useState('');
-  const [animaisFiltrados, setAnimaisFiltrados] = useState([]);const [estaLogado, setEstaLogado] = useState(false);
 
-  const [brinco, setBrinco] = useState('');
+  const [filtroDataCorte, setFiltroDataCorte] = useState('');
+  const [animaisFiltrados, setAnimaisFiltrados] = useState([]);
+  const [estaLogado, setEstaLogado] = useState(false);
+
+  
   
   // --- FUNÇÕES DE APOIO ---
   const realizarLogin = () => {
