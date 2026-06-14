@@ -1,12 +1,9 @@
-// --- IMPORTAÇÕES ---
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Alert, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import { createClient } from '@supabase/supabase-js';
 
-// --- CONFIGURAÇÃO SUPABASE ---
+// --- CONFIGURAÇÃO ---
 const SUPABASE_URL = 'https://bonhkjxiujzewagjizsr.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_eXQWjpoahbmM8tJDULkcsA_TC96ttWP'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -17,10 +14,11 @@ export default function App() {
   const [animais, setAnimais] = useState([]);
   const [usuarioInput, setUsuarioInput] = useState('');
   const [senhaInput, setSenhaInput] = useState('');
-// (Certifique-se de que todos os seus estados como brinco, raca, etc, estejam definidos aqui)
   const [filtroSetor, setFiltroSetor] = useState('Todos');
   const [filtroDataCorte, setFiltroDataCorte] = useState('');
-  const [animaisFiltrados, setAnimaisFiltrados] = useState([]);
+  const [animaisFiltrados, setAnimaisFiltrados] = useState([]);const [estaLogado, setEstaLogado] = useState(false);
+
+  const [brinco, setBrinco] = useState('');
   
   // --- FUNÇÕES DE APOIO ---
   const realizarLogin = () => {
