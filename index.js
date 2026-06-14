@@ -94,10 +94,46 @@ export default function App() {
   useEffect(() => {
     carregarDadosOnline();
   }, []);
+// --- ESCUTADOR DE AUTENTICAÇÃO (SUPABASE) ---
+  useEffect(() => {
+    // Escuta se o usuário logou ou deslogou (Funciona no Celular e na Web)
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setEstaLogado(true);
+      } else {
+        setEstaLogado(false);
+      }
+    });
+
+    return () => {
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, []);
+
+  // // --- ESCUTADOR DE AUTENTICAÇÃO (SUPABASE) ---
+  useEffect(() => {
+    // Escuta se o usuário logou ou deslogou (Funciona no Celular e na Web)
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setEstaLogado(true);
+      } else {
+        setEstaLogado(false);
+      }
+    });
+
+    return () => {
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, []);
+
   // --- FUNÇÃO DE LOGIN PADRÃO (ADMIN) ---
   const realizarLogin = () => {
     if (usuarioInput.trim() === 'admin' && senhaInput === 'admin') {
-      setEstaLogado(true);
+      setEstaLogado(true); 
     } else {
       exibirAlerta('Erro de Acesso', 'Usuário ou senha incorretos.');
     }
@@ -128,7 +164,6 @@ export default function App() {
       exibirAlerta('Erro Google Auth', error.message || 'Não foi possível conectar.');
     }
   };
-
 // Garante que o aplicativo busca os dados assim que liga
 useEffect(() => {
   carregarDadosOnline();
