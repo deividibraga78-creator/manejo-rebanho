@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
+
+// --- IMPORTAÇÕES ---
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Alert, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+
+// Evita que o build da Vercel/Web quebre por causa do pacote nativo
+let WebBrowser = null;
+if (Platform.OS !== 'web') {
+  WebBrowser = require('expo-web-browser');
+  WebBrowser.maybeCompleteAuthSession();
+}
 
 // --- CONEXÃO COM O BANCO DE DADOS (SUPABASE) ---
 import { createClient } from '@supabase/supabase-js';
@@ -85,6 +93,40 @@ export default function App() {
   useEffect(() => {
     carregarDadosOnline();
   }, []);
+  // --- FUNÇÃO DE LOGIN PADRÃO (ADMIN) ---
+  const realizarLogin = () => {
+    if (usuarioInput.trim() === 'admin' && senhaInput === 'admin') {
+      setEstaLogado(true);
+    } else {
+      exibirAlerta('Erro de Acesso', 'Usuário ou senha incorretos.');
+    }
+  };
+
+  // --- FUNÇÃO DE LOGIN COM GOOGLE ---
+  const loginComGoogle = async () => {
+    try {
+      const redirectUrl = 'https://bonhkjxiujzewagjizsr.supabase.co/auth/v1/callback'; 
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: Platform.OS === 'web' ? true : false,
+        },
+      });
+
+      if (error) throw error;
+
+      if (Platform.OS !== 'web' && data?.url && WebBrowser) {
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+        if (result.type === 'success') {
+          setEstaLogado(true);
+        }
+      }
+    } catch (error) {
+      exibirAlerta('Erro Google Auth', error.message || 'Não foi possível conectar.');
+    }
+  };
 
 // Garante que o aplicativo busca os dados assim que liga
 useEffect(() => {
@@ -92,20 +134,28 @@ useEffect(() => {
 }, []);
 
   // --- FUNÇÃO PARA SALVAR AUTOMATICAMENTE NO SUPABASE ---
-  // --- FUNÇÃO PARA SALVAR E ATUALIZAR A LISTA NA NUVEM ---
   const salvarDadosLocais = async (novaLista) => {
-    setAnimais(novaLista); // Atualiza o visual da tela na hora
+    // Atualiza a tela primeiro para o usuário ver os animais na hora
+    setAnimais(novaLista);
     
     try {
-      const { error } = await supabase
-        .from('dados_rebanho')
-        .update({ lista_animais: novaLista })
-        .eq('id', 1); // Atualiza estritamente a linha 1
+      // Pega o último animal adicionado na lista para enviar ao banco
+      if (novaLista.length > 0) {
+        const ultimoAnimal = novaLista[novaLista.length - 1];
 
-      if (error) throw error;
-      console.log("Nuvem sincronizada com sucesso!");
+        // Envia para a tabela 'dados_rebanho' que vimos na image_3aea77.png
+        const { error } = await supabase
+          .from('dados_rebanho')
+          .insert([{ lista_animais: ultimoAnimal }]);
+
+        if (error) {
+          console.log("Erro ao enviar para o Supabase:", error.message);
+        } else {
+          console.log("Dados sincronizados com sucesso na nuvem!");
+        }
+      }
     } catch (e) {
-      console.log("Erro ao salvar dados no Supabase", e);
+      console.log("Erro na conexão com o banco", e);
     }
   };
 
