@@ -242,35 +242,35 @@ export default function App() {
     }
   };
 // Garante que o aplicativo busca os dados assim que liga
-useEffect(() => {
-  carregarDadosOnline();
-}, []);
+useEffect(() => 
+  carregarDadosOnline);
+ 
 
   // --- FUNÇÃO PARA SALVAR AUTOMATICAMENTE NO SUPABASE ---
-  const salvarDadosLocais = async (novaLista) => {
-    // Atualiza a tela primeiro para o usuário ver os animais na hora
-    setAnimais(novaLista);
-    
-    try {
-      // Pega o último animal adicionado na lista para enviar ao banco
-      if (novaLista.length > 0) {
-        const ultimoAnimal = novaLista[novaLista.length - 1];
+  async function salvarDadosLocais(novaLista) {
+  // Atualiza a tela primeiro para o usuário ver os animais na hora
+  setAnimais(novaLista);
 
-        // Envia para a tabela 'dados_rebanho' que vimos na image_3aea77.png
-        const { error } = await supabase
-          .from('dados_rebanho')
-          .insert([{ lista_animais: ultimoAnimal }]);
+  try {
+    // Pega o último animal adicionado na lista para enviar ao banco
+    if (novaLista.length > 0) {
+      const ultimoAnimal = novaLista[novaLista.length - 1];
 
-        if (error) {
-          console.log("Erro ao enviar para o Supabase:", error.message);
-        } else {
-          console.log("Dados sincronizados com sucesso na nuvem!");
-        }
+      // Envia para a tabela 'dados_rebanho' que vimos na image_3aea77.png
+      const { error } = await supabase
+        .from('dados_rebanho')
+        .insert([{ lista_animais: ultimoAnimal }]);
+
+      if (error) {
+        console.log("Erro ao enviar para o Supabase:", error.message);
+      } else {
+        console.log("Dados sincronizados com sucesso na nuvem!");
       }
-    } catch (e) {
-      console.log("Erro na conexão com o banco", e);
     }
-  };
+  } catch (e) {
+    console.log("Erro na conexão com o banco", e);
+  }
+}
 
   // --- FUNÇÃO AUXILIAR: CONVERSOR DE DATAS SEGURO ---
   function tratarData(txtData) {
@@ -808,7 +808,6 @@ return (
     </SafeAreaView>
   );
 
-
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
@@ -877,6 +876,6 @@ const styles = StyleSheet.create({
   containerAcoesFicha: { flexDirection: 'row', justifyContent: 'flex-end', borderTopWidth: 1, borderTopColor: '#333', marginTop: 10, paddingTop: 8 },
   btnEditarCard: { backgroundColor: '#FFB300', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, marginRight: 8 },
   btnExcluirCard: { backgroundColor: '#FF5252', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }
-});
+  });
 
-registerRootComponent(App);
+  registerRootComponent(App);}
