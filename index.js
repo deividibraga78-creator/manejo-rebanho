@@ -1,3 +1,4 @@
+// --- IMPORTAÇÕES ---
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Alert, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
@@ -5,19 +6,28 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { createClient } from '@supabase/supabase-js';
 
-// Configuração Supabase
+// --- CONFIGURAÇÃO SUPABASE ---
 const SUPABASE_URL = 'https://bonhkjxiujzewagjizsr.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_eXQWjpoahbmM8tJDULkcsA_TC96ttWP'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function App() {
-  // --- ESTADOS ---
+  // Estados Globais
   const [estaLogado, setEstaLogado] = useState(false);
   const [animais, setAnimais] = useState([]);
   const [usuarioInput, setUsuarioInput] = useState('');
   const [senhaInput, setSenhaInput] = useState('');
-
-  // (Mantenha aqui todos os seus outros estados: brinco, raca, categoria, etc.)
+// (Certifique-se de que todos os seus estados como brinco, raca, etc, estejam definidos aqui)
+  const [filtroSetor, setFiltroSetor] = useState('Todos');
+  const [filtroDataCorte, setFiltroDataCorte] = useState('');
+  const [animaisFiltrados, setAnimaisFiltrados] = useState([]);
+  
+  // --- FUNÇÕES DE APOIO ---
+  const realizarLogin = () => {
+    if (usuarioInput === 'admin' && senhaInput === 'admin') setEstaLogado(true);
+    else Alert.alert('Erro', 'Usuário ou senha incorretos.');
+  }
+  
   // --- ESTADO PARA MEDICAMENTOS ---
   const [medicamentos, setMedicamentos] = useState([{ id: Math.random().toString(), nome: '', data: '', carencia: '' }]);
 
