@@ -205,7 +205,16 @@ export default function App() {
         authListener.subscription.unsubscribe();
       }
     };
-   []);
+  }, []);
+
+  // --- FUNÇÃO DE LOGIN PADRÃO (ADMIN) ---
+  function realizarLogin() {
+    if (usuarioInput.trim() === 'admin' && senhaInput === 'admin') {
+      setEstaLogado(true);
+    } else {
+      exibirAlerta('Erro de Acesso', 'Usuário ou senha incorretos.');
+    }
+  }
 
   // --- FUNÇÃO DE LOGIN COM GOOGLE ---
   const loginComGoogle = async () => {
