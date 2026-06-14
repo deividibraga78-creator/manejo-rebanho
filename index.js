@@ -650,11 +650,11 @@ useEffect(() => {
       await Sharing.shareAsync(uri);
     } catch (error) {
       console.log("Erro ao gerar PDF", error);
-    }
-  };
+  }
 
-  return (
-    <SafeAreaView style={styles.container}>
+
+return (
+        <SafeAreaView style={styles.container}>
       <View style={styles.headerTop}>
         <Text style={styles.tituloPrincipal}>Manejo Prático v7.0 💾</Text>
       </View>
