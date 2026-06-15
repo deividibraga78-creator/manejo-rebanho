@@ -1,25 +1,17 @@
+// 1. TODOS OS IMPORTS NO TOPO (Nível Superior)
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Alert, Platform } from 'react-native';
 import { registerRootComponent } from 'expo';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-
-export default function App() {
-// Evita que o build da Vercel/Web quebre por causa do pacote nativo
-let WebBrowser = null;
-if (Platform.OS !== 'web') {
-  WebBrowser = require('expo-web-browser');
-  WebBrowser.maybeCompleteAuthSession();
-}
-
-// --- CONEXÃO COM O BANCO DE DADOS (SUPABASE) ---
 import { createClient } from '@supabase/supabase-js';
 
+// 2. CONFIGURAÇÕES (Nível Superior)
 const SUPABASE_URL = 'https://bonhkjxiujzewagjizsr.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_eXQWjpoahbmM8tJDULkcsA_TC96ttWP'; 
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// 3. FUNÇÃO PRINCIPAL (Uma única vez)
 export default function App() {
   // Memórias do formulário de entrada (Cadastro)
   const [idEmEdicao, setIdEmEdicao] = useState(null);
@@ -647,4 +639,4 @@ const styles = StyleSheet.create({
   btnExcluirCard: { backgroundColor: '#FF5252', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 }
 });
 
-registerRootComponent(App);}
+registerRootComponent(App);
