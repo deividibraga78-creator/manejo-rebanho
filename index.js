@@ -231,24 +231,26 @@ useEffect(() => {
 
    // 1. Função de cálculo (mantida íntegra)
 const calcularMetricasAnimal = (ani, dataVendaFim = null, dataCorteFiltro = null) => {
-  const pesoIn = parseFloat(ani.pesoEntrada) || 0;
-  const pCompra = parseFloat(ani.precoCompra) || 0;
-  const cDiario = parseFloat(ani.custoDiario) || 0;
-  
-  // Variáveis necessárias calculadas antes do return
-  const dateIn = tratarData(ani.dataEntrada);
-  const dSaida = dataVendaFim || ani.dataSaida;
-  let dateOut = tratarData(dSaida || ani.dataEntrada);
-  
-  const diferencaTempo = dateOut.getTime() - dateIn.getTime();
-  const dias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
-  const diasFinais = isNaN(dias) || dias < 0 ? 0 : dias;
+    const pesoIn = parseFloat(ani.pesoEntrada) || 0;
+    const pCompra = parseFloat(ani.precoCompra) || 0;
+    const cDiario = parseFloat(ani.custoDiario) || 0;
+    const dateIn = tratarData(ani.dataEntrada);
+    const dSaida = dataVendaFim || ani.dataSaida;
+    let dateOut = tratarData(dSaida || ani.dataEntrada);
+    
+    if (dataCorteFiltro && tratarData(dataCorteFiltro).getTime() < dateOut.getTime()) {
+      dateOut = tratarData(dataCorteFiltro);
+    }
+    
+    const dias = Math.max(0, Math.ceil((dateOut.getTime() - dateIn.getTime()) / (1000 * 60 * 60 * 24)));
+    let rateioAcumulado = 0;
+    (ani.historicoRateios || []).forEach(r => {
+      rateioAcumulado += parseFloat(r.valor) || 0;
+    });
 
-  const pSaida = parseFloat(dataVendaFim ? pesoSaida : ani.pesoSaida) || 0;
-  const ganhoPesoTotal = pSaida - pesoIn;
-  const gpdCalculado = diasFinais > 0 ? (ganhoPesoTotal / diasFinais) : 0;
-  const totalTratoCalculado = diasFinais * cDiario;
-
+    const pSaida = parseFloat(dataVendaFim ? pesoSaida : ani.pesoSaida) || 0;
+    const vVenda = dataVendaFim ? (pSaida * parseFloat(precoKgVenda || 0)) : (parseFloat(ani.precoVenda) || 0);
+    const custoTotal = pCompra + (dias * cDiario) + rateioAcumulado;
   // Calculando rateio acumulado
   let rateioAcumulado = 0;
   (ani.historicoRateios || []).forEach(r => {
