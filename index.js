@@ -291,161 +291,71 @@ if (animaisAlvo.length === 0) {
       }
     }
       
-    // --- REMOVER UM LANÇAMENTO ESPECÍFICO DO HISTÓRICO DE RATEIOS ---
-  const excluirCustoIndividual = (animalId, idRateio) => {
-    const listaAtualizada = animais.map(ani => {
-      if (ani.id === animalId) {
-        const historicoFiltrado = (ani.historicoRateios || []).filter(r => r.idRateio !== idRateio);
-        const novoCustoAcumulado = historicoFiltrado.reduce((acc, curr) => acc + curr.valor, 0);
-        let fichaAtualizada = {
-          ...ani,
-          historicoRateios: historicoFiltrado,
-          custoManejoAplicado: novoCustoAcumulado
-        };
-        if (ani.status === 'Vendido') {
-          const m = calcularMetricasAnimal(fichaAtualizada);
-          fichaAtualizada.lucroLiquido = m.lucroLiquido;
-        }
-        return fichaAtualizada;
+    // 1. Remover custo individual
+const excluirCustoIndividual = (animalId, idRateio) => {
+  const listaAtualizada = animais.map(ani => {
+    if (ani.id === animalId) {
+      const historicoFiltrado = (ani.historicoRateios || []).filter(r => r.idRateio !== idRateio);
+      const novoCustoAcumulado = historicoFiltrado.reduce((acc, curr) => acc + (parseFloat(curr.valor) || 0), 0);
+      let fichaAtualizada = { ...ani, historicoRateios: historicoFiltrado, custoManejoAplicado: novoCustoAcumulado };
+      if (ani.status === 'Vendido') {
+        const m = calcularMetricasAnimal(fichaAtualizada);
+        fichaAtualizada.lucroLiquido = m.lucroLiquido;
       }
-      return ani;
-    });
-    salvarDadosLocais(listaAtualizada);
-    exibirAlerta('Sucesso', 'Lançamento removido do histórico deste animal.');
-  };
-          if (ani.id === idEmEdicao) {
-          let animalEditado = {
-            ...ani,
-            brinco, raca, categoria,
-            pesoEntrada: pesoIn,
-            precoKgCompra: pKg,
-            precoCompra: precoCompraCalculado,
-            dataEntrada,
-            custoDiario: parseFloat(custoDiario) || 0,
-            piqueManejo, 
-            medicamentos: medicamentosFiltrados
-          };
-
-          if (ani.status === 'Vendido') {
-            const m = calcularMetricasAnimal(animalEditado);
-            animalEditado = { ...animalEditado, diasCocho: m.diasCocho, gpd: m.gpd, totalTrato: m.totalTrato, lucroLiquido: m.lucroLiquido };
-          }
-          return animalEditado;
-        }
-        return ani;
-      
-      setIdEmEdicao(null);
-    {
-      const novoAnimal = {
-        id: Math.random().toString(),
-        brinco, raca, categoria,
-        pesoEntrada: pesoIn,
-        precoKgCompra: pKg,
-        precoCompra: precoCompraCalculado,
-        dataEntrada,
-        custoDiario: parseFloat(custoDiario) || 0,
-        piqueManejo,
-        medicamentos: medicamentosFiltrados,
-        custoManejoAplicado: 0,
-        historicoRateios: [],
-        status: 'Em Engorda',
-        pesoSaida: null, precoKgVenda: null, precoVenda: null, dataSaida: null,
-        diasCocho: null, gpd: null, lucroLiquido: null, totalTrato: null
-      };
-      listaAtualizada = [...animais, novoAnimal];
+      return fichaAtualizada;
     }
+    return ani;
+  });
+  salvarDadosLocais(listaAtualizada);
+  exibirAlerta('Sucesso', 'Lançamento removido.');
+};
 
-    salvarDadosLocais(listaAtualizada);
-    setBrinco(''); setRaca(''); setCategoria(''); setPesoEntrada(''); setPrecoKgCompra(''); setDataEntrada(''); setCustoDiario('');
-    setPiqueManejo('Campo'); setMedicamentos([{ id: Math.random().toString(), nome: '', data: '', carencia: '' }]);
-  
-      if (!animalSelecionado) return;
-    if (!pesoSaida || !precoKgVenda || !dataSaida) {
-      exibirAlerta('Campos Vazios', 'Preencha Peso Saída, Preço Kg Venda e Data Saída.');
-      return;
-    }
-
-    const pSaida = parseFloat(pesoSaida) || 0;
-    const pKgVenda = parseFloat(precoKgVenda) || 0;
-
-    const metricas = calcularMetricasAnimal(animalSelecionado, dataSaida);
-
-    const listaAtualizada = animais.map(ani => {
-      if (ani.id === animalSelecionado.id) {
-        return {
-          ...ani,
-          status: 'Vendido',
-          pesoSaida: pSaida,
-          precoKgVenda: pKgVenda,
-          precoVenda: metricas.precoVenda,
-          dataSaida,
-          diasCocho: metricas.diasCocho,
-          gpd: metricas.gpd,
-          totalTrato: metricas.totalTrato,
-          lucroLiquido: metricas.lucroLiquido
-        };
+// 2. Editar animal (deve estar dentro do seu componente ou ser uma função independente)
+const salvarEdicaoAnimal = () => {
+  const listaAtualizada = animais.map(ani => {
+    if (ani.id === idEmEdicao) {
+      let animalEditado = { ...ani, brinco, raca, categoria, pesoEntrada: pesoIn, precoKgCompra: pKg, precoCompra: precoCompraCalculado, dataEntrada, custoDiario: parseFloat(custoDiario) || 0, piqueManejo, medicamentos: medicamentosFiltrados };
+      if (ani.status === 'Vendido') {
+        const m = calcularMetricasAnimal(animalEditado);
+        animalEditado = { ...animalEditado, diasCocho: m.diasCocho, gpd: m.gpd, totalTrato: m.totalTrato, lucroLiquido: m.lucroLiquido };
       }
-      return ani;
-    });
-
-    salvarDadosLocais(listaAtualizada);
-    setAnimalSelecionado(null);
-    setPesoSaida(''); setPrecoKgVenda(''); setDataSaida('');
-  
-
-  const adicionarLinhaMedicamento = () => {
-    setMedicamentos([...medicamentos, { id: Math.random().toString(), nome: '', data: '', carencia: '' }]);
-  };
-
-  const actualizarCampoMedicamento = (id, campo, valor) => {
-    setMedicamentos(medicamentos.map(med => med.id === id ? { ...med, [campo]: valor } : med));
-  };
-
-      if (filtroSetor === 'Campo' && (ani.piqueManejo !== 'Campo' || ani.status === 'Vendido')) return false;
-    if (filtroSetor === 'Confinamento' && (ani.piqueManejo !== 'Confinamento' || ani.status === 'Vendido')) return false;
-    if (filtroSetor === 'Vendidos' && ani.status !== 'Vendido') return false;
-    return true;
-    if (!animalSelecionado) return;
-    if (!pesoSaida || !precoKgVenda || !dataSaida) {
-      exibirAlerta('Campos Vazios', 'Preencha Peso Saída, Preço Kg Venda e Data Saída.');
-      return;
+      return animalEditado;
     }
+    return ani;
+  });
+  salvarDadosLocais(listaAtualizada);
+  setIdEmEdicao(null);
+};
 
-    const pSaida = parseFloat(pesoSaida) || 0;
-    const pKgVenda = parseFloat(precoKgVenda) || 0;
+// 3. Vender Animal (agora única e sem duplicatas)
+const confirmarVenda = () => {
+  if (!animalSelecionado || !pesoSaida || !precoKgVenda || !dataSaida) {
+    exibirAlerta('Campos Vazios', 'Preencha Peso Saída, Preço Kg Venda e Data Saída.');
+    return;
+  }
+  const pSaida = parseFloat(pesoSaida) || 0;
+  const pKgVenda = parseFloat(precoKgVenda) || 0;
+  const metricas = calcularMetricasAnimal(animalSelecionado, dataSaida);
 
-    const metricas = calcularMetricasAnimal(animalSelecionado, dataSaida);
+  const listaAtualizada = animais.map(ani => {
+    if (ani.id === animalSelecionado.id) {
+      return { ...ani, status: 'Vendido', pesoSaida: pSaida, precoKgVenda: pKgVenda, precoVenda: metricas.precoVenda, dataSaida, diasCocho: metricas.diasCocho, gpd: metricas.gpd, totalTrato: metricas.totalTrato, lucroLiquido: metricas.lucroLiquido };
+    }
+    return ani;
+  });
+  salvarDadosLocais(listaAtualizada);
+  setAnimalSelecionado(null);
+  setPesoSaida(''); setPrecoKgVenda(''); setDataSaida('');
+};
 
-    const listaAtualizada = animais.map(ani => {
-      if (ani.id === animalSelecionado.id) {
-        return {
-          ...ani,
-          status: 'Vendido',
-          pesoSaida: pSaida,
-          precoKgVenda: pKgVenda,
-          precoVenda: metricas.precoVenda,
-          dataSaida,
-          diasCocho: metricas.diasCocho,
-          gpd: metricas.gpd,
-          totalTrato: metricas.totalTrato,
-          lucroLiquido: metricas.lucroLiquido
-        };
-      }
-      return ani;
-    });
+// 4. Medicamentos
+const adicionarLinhaMedicamento = () => {
+  setMedicamentos([...medicamentos, { id: Math.random().toString(), nome: '', data: '', carencia: '' }]);
+};
 
-    salvarDadosLocais(listaAtualizada);
-    setAnimalSelecionado(null);
-    setPesoSaida(''); setPrecoKgVenda(''); setDataSaida('');
-  
-
-  const adicionarLinhaMedicamento = () => {
-    setMedicamentos([...medicamentos, { id: Math.random().toString(), nome: '', data: '', carencia: '' }]);
-  };
-
-  const actualizarCampoMedicamento = (id, campo, valor) => {
-    setMedicamentos(medicamentos.map(med => med.id === id ? { ...med, [campo]: valor } : med));
-  };
+const actualizarCampoMedicamento = (id, campo, valor) => {
+  setMedicamentos(medicamentos.map(med => med.id === id ? { ...med, [campo]: valor } : med));
+};
  // --- FILTRAGEM DINÂMICA DA LISTA ---
   const animaisFiltrados = animais.filter(ani => {
     if (filtroSetor === 'Campo' && (ani.piqueManejo !== 'Campo' || ani.status === 'Vendido')) return false;
