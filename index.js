@@ -229,6 +229,8 @@ useEffect(() => {
       }
     }
 
+    const calcularMetricasAnimal = (ani, dataVendaFim = null, dataCorteFiltro = null) => {
+  
     const diferencaTempo = dateOut.getTime() - dateIn.getTime();
     const dias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
     const diasFinais = isNaN(dias) || dias < 0 ? 0 : dias;
@@ -251,6 +253,7 @@ useEffect(() => {
       custoTotalAcumulado: custoTotalAteMomento,
       apenasRateios: rateioAcumulado
     };
+  };  
         const naoEstavaVendido = ani.status !== 'Vendido' || (ani.dataSaida && tratarData(ani.dataSaida).getTime() >= dataLimiteCusto.getTime());
 
       return atendeManejo && jaEstavaCadastrado && naoEstavaVendido;
