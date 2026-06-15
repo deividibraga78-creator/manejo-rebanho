@@ -202,48 +202,7 @@ useEffect(() => {
     const pesoIn = parseFloat(ani.pesoEntrada) || 0;
     const pCompra = parseFloat(ani.precoCompra) || 0;
     const cDiario = parseFloat(ani.custoDiario) || 0;
-  }
-   // 1. Calcular o rateio histórico filtrado (se houver filtro de data)
-    let rateioAcumulado = 0;
-    const historico = ani.historicoRateios || [];
-    historico.forEach(r => {
-      if (dataCorteFiltro) {
-        const dataR = tratarData(r.dataOriginalCusto);
-        const dataC = tratarData(dataCorteFiltro);
-        if (dataR.getTime() <= dataC.getTime()) {
-          rateioAcumulado += parseFloat(r.valor) || 0;
-        }
-      } else {
-        rateioAcumulado += parseFloat(r.valor) || 0;
-      }
-    });
-   // 2. Definir a data final para cálculo dos dias de trato
-    const dSaida = dataVendaFim || ani.dataSaida;
-    const dateIn = tratarData(ani.dataEntrada);
-    
-    let dateOut = tratarData(dSaida || ani.dataEntrada);
-    if (dataCorteFiltro) {
-      const dataC = tratarData(dataCorteFiltro);
-      if (dataC.getTime() < dateOut.getTime()) {
-        dateOut = dataC;
-      }
-    }
-   
-      const calcularMetricasAnimal = (ani, dataVendaFim = null, dataCorteFiltro = null) => {
-    const diferencaTempo = dateOut.getTime() - dateIn.getTime();
-    const dias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
-    const diasFinais = isNaN(dias) || dias < 0 ? 0 : dias;
 
-    const pSaida = parseFloat(dataVendaFim ? pesoSaida : ani.pesoSaida) || 0;
-    const ganhoPesoTotal = pSaida - pesoIn;
-    const gpdCalculado = diasFinais > 0 ? (ganhoPesoTotal / diasFinais) : 0;
-    const totalTratoCalculado = diasFinais * cDiario;
-
-    const pVenda = dataVendaFim ? (pSaida * (parseFloat(precoKgVenda) || 0)) : (parseFloat(ani.precoVenda) || 0);
-    const custoTotalAteMomento = pCompra + totalTratoCalculado + rateioAcumulado;
-    const lucroLiq = pVenda - custoTotalAteMomento;
-
-    // A chave que estava aqui foi REMOVIDA para o return ficar dentro da função
     return {
       diasCocho: diasFinais,
       gpd: gpdCalculado,
@@ -253,9 +212,8 @@ useEffect(() => {
       custoTotalAcumulado: custoTotalAteMomento,
       apenasRateios: rateioAcumulado
     };
-  };
-   
-        const naoEstavaVendido = ani.status !== 'Vendido' || (ani.dataSaida && tratarData(ani.dataSaida).getTime() >= dataLimiteCusto.getTime());
+  }
+    const naoEstavaVendido = ani.status !== 'Vendido' || (ani.dataSaida && tratarData(ani.dataSaida).getTime() >= dataLimiteCusto.getTime());
 
       return atendeManejo && jaEstavaCadastrado && naoEstavaVendido;
     
@@ -296,6 +254,40 @@ useEffect(() => {
     salvarDadosLocais(listaAtualizada);
     exibirAlerta('Sucesso', `R$ ${valorTotal.toFixed(2)} divididos entre ${animaisAlvo.length} cabeças.`);
     setDescricaoManejo(''); setCustoManejoGlobal(''); setDataManejoGlobal('');
+    
+   // 1. Calcular o rateio histórico filtrado (se houver filtro de data)
+    let rateioAcumulado = 0;
+    const historico = ani.historicoRateios || [];
+    historico.forEach(r => {
+      if (dataCorteFiltro) {
+        const dataR = tratarData(r.dataOriginalCusto);
+        const dataC = tratarData(dataCorteFiltro);
+        if (dataR.getTime() <= dataC.getTime()) {
+          rateioAcumulado += parseFloat(r.valor) || 0;
+        }
+      } else {
+        rateioAcumulado += parseFloat(r.valor) || 0;
+      }
+    });
+   // 2. Definir a data final para cálculo dos dias de trato
+    const dSaida = dataVendaFim || ani.dataSaida;
+    const dateIn = tratarData(ani.dataEntrada);
+    
+    let dateOut = tratarData(dSaida || ani.dataEntrada);
+    if (dataCorteFiltro) {
+      const dataC = tratarData(dataCorteFiltro);
+      if (dataC.getTime() < dateOut.getTime()) {
+        dateOut = dataC;
+      }
+    }
+   
+
+
+    // A chave que estava aqui foi REMOVIDA para o return ficar dentro da função
+    
+
+   
+      
 
     // --- REMOVER UM LANÇAMENTO ESPECÍFICO DO HISTÓRICO DE RATEIOS ---
   const excluirCustoIndividual = (animalId, idRateio) => {
