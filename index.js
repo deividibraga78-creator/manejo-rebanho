@@ -4,8 +4,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAr
 import { registerRootComponent } from 'expo';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import React, { useState } from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
+
 export default function App() {
 // Evita que o build da Vercel/Web quebre por causa do pacote nativo
 let WebBrowser = null;
