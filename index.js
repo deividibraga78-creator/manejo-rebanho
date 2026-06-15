@@ -213,48 +213,58 @@ useEffect(() => {
       apenasRateios: rateioAcumulado
     };
   }
-    const naoEstavaVendido = ani.status !== 'Vendido' || (ani.dataSaida && tratarData(ani.dataSaida).getTime() >= dataLimiteCusto.getTime());
+    // 1. Primeiro: Filtramos a lista (apenas lógica de comparação)
+const animaisAlvo = animais.filter(ani => {
+  const atendeManejo = (filtroSetor === 'Todos' || ani.piqueManejo === filtroSetor);
+  const jaEstavaCadastrado = tratarData(ani.dataEntrada).getTime() <= tratarData(dataManejoGlobal).getTime();
+  const naoEstavaVendido = ani.status !== 'Vendido' || (ani.dataSaida && tratarData(ani.dataSaida).getTime() >= tratarData(dataManejoGlobal).getTime());
+  
+  return atendeManejo && jaEstavaCadastrado && naoEstavaVendido;
+});
 
-      return atendeManejo && jaEstavaCadastrado && naoEstavaVendido;
+// 2. Segundo: Verificamos o resultado da filtragem (lógica de execução)
+if (animaisAlvo.length === 0) {
+  exibirAlerta('Aviso', 'Nenhum bovino ativo encontrado para esta data.');
+} else {
+  // 3. Terceiro: Processamos apenas se houver animais
+  const valorTotal = parseFloat(custoManejoGlobal) || 0;
+  const custoPorAnimal = valorTotal / animaisAlvo.length;
+
+  const listaAtualizada = animais.map(ani => {
+    const pertenceAoGrupo = animaisAlvo.some(alvo => alvo.id === ani.id);
     
+    if (pertenceAoGrupo) {
+      const atual = parseFloat(ani.custoManejoAplicado) || 0;
+      const novoHist = {
+        idRateio: Math.random().toString(),
+        descricao: descricaoManejo,
+        dataCusto: dataManejoGlobal,
+        dataOriginalCusto: dataManejoGlobal,
+        valor: custoPorAnimal
+      };
+      
+      const novaFicha = {
+        ...ani,
+        custoManejoAplicado: atual + custoPorAnimal,
+        historicoRateios: [...(ani.historicoRateios || []), novoHist]
+      };
 
-    if (animaisAlvo.length === 0) {
-      exibirAlerta('Aviso', 'Nenhum bovino ativo encontrado para esta data.');
-      return;
-    }
-
-    const custoPorAnimal = valorTotal / animaisAlvo.length;
-
-    const listaAtualizada = animais.map(ani => {
-      const pertenceAoGrupo = animaisAlvo.some(alvo => alvo.id === ani.id);
-      if (pertenceAoGrupo) {
-        const atual = parseFloat(ani.custoManejoAplicado) || 0;
-        const novoHist = {
-          idRateio: Math.random().toString(),
-          descricao: descricaoManejo,
-          dataCusto: dataManejoGlobal,
-          dataOriginalCusto: dataManejoGlobal,
-          valor: custoPorAnimal
-        };
-        const novaFicha = {
-          ...ani,
-          custoManejoAplicado: atual + custoPorAnimal,
-          historicoRateios: [...(ani.historicoRateios || []), novoHist]
-        };
-
-        if (ani.status === 'Vendido') {
-          const metricas = calcularMetricasAnimal(novaFicha);
-          novaFicha.lucroLiquido = metricas.lucroLiquido;
-        }
-        return novaFicha;
+      if (ani.status === 'Vendido') {
+        const metricas = calcularMetricasAnimal(novaFicha);
+        novaFicha.lucroLiquido = metricas.lucroLiquido;
       }
-      return ani;
-    });
+      return novaFicha;
+    }
+    return ani;
+  });
 
-    salvarDadosLocais(listaAtualizada);
-    exibirAlerta('Sucesso', `R$ ${valorTotal.toFixed(2)} divididos entre ${animaisAlvo.length} cabeças.`);
-    setDescricaoManejo(''); setCustoManejoGlobal(''); setDataManejoGlobal('');
-    
+  salvarDadosLocais(listaAtualizada);
+  exibirAlerta('Sucesso', `R$ ${valorTotal.toFixed(2)} divididos entre ${animaisAlvo.length} cabeças.`);
+  setDescricaoManejo(''); 
+  setCustoManejoGlobal(''); 
+  setDataManejoGlobal('');
+}
+
    // 1. Calcular o rateio histórico filtrado (se houver filtro de data)
     let rateioAcumulado = 0;
     const historico = ani.historicoRateios || [];
@@ -280,15 +290,7 @@ useEffect(() => {
         dateOut = dataC;
       }
     }
-   
-
-
-    // A chave que estava aqui foi REMOVIDA para o return ficar dentro da função
-    
-
-   
       
-
     // --- REMOVER UM LANÇAMENTO ESPECÍFICO DO HISTÓRICO DE RATEIOS ---
   const excluirCustoIndividual = (animalId, idRateio) => {
     const listaAtualizada = animais.map(ani => {
