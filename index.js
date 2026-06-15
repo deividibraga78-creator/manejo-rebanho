@@ -229,73 +229,95 @@ useEffect(() => {
       }
     }
 
-    const calcularMetricasAnimal = (ani, dataVendaFim = null, dataCorteFiltro = null) => {
+   // 1. Função de cálculo (mantida íntegra)
+const calcularMetricasAnimal = (ani, dataVendaFim = null, dataCorteFiltro = null) => {
+  const pesoIn = parseFloat(ani.pesoEntrada) || 0;
+  const pCompra = parseFloat(ani.precoCompra) || 0;
+  const cDiario = parseFloat(ani.custoDiario) || 0;
   
-    const diferencaTempo = dateOut.getTime() - dateIn.getTime();
-    const dias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
-    const diasFinais = isNaN(dias) || dias < 0 ? 0 : dias;
+  // Variáveis necessárias calculadas antes do return
+  const dateIn = tratarData(ani.dataEntrada);
+  const dSaida = dataVendaFim || ani.dataSaida;
+  let dateOut = tratarData(dSaida || ani.dataEntrada);
+  
+  const diferencaTempo = dateOut.getTime() - dateIn.getTime();
+  const dias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+  const diasFinais = isNaN(dias) || dias < 0 ? 0 : dias;
 
-    const pSaida = parseFloat(dataVendaFim ? pesoSaida : ani.pesoSaida) || 0;
-    const ganhoPesoTotal = pSaida - pesoIn;
-    const gpdCalculado = diasFinais > 0 ? (ganhoPesoTotal / diasFinais) : 0;
-    const totalTratoCalculado = diasFinais * cDiario;
+  const pSaida = parseFloat(dataVendaFim ? pesoSaida : ani.pesoSaida) || 0;
+  const ganhoPesoTotal = pSaida - pesoIn;
+  const gpdCalculado = diasFinais > 0 ? (ganhoPesoTotal / diasFinais) : 0;
+  const totalTratoCalculado = diasFinais * cDiario;
 
-    const pVenda = dataVendaFim ? (pSaida * (parseFloat(precoKgVenda) || 0)) : (parseFloat(ani.precoVenda) || 0);
-    const custoTotalAteMomento = pCompra + totalTratoCalculado + rateioAcumulado;
-    const lucroLiq = pVenda - custoTotalAteMomento;
+  // Calculando rateio acumulado
+  let rateioAcumulado = 0;
+  (ani.historicoRateios || []).forEach(r => {
+    rateioAcumulado += parseFloat(r.valor) || 0;
+  });
 
-    return {
-      diasCocho: diasFinais,
-      gpd: gpdCalculado,
-      totalTrato: totalTratoCalculado,
-      lucroLiquido: lucroLiq,
-      precoVenda: pVenda,
-      custoTotalAcumulado: custoTotalAteMomento,
-      apenasRateios: rateioAcumulado
-    };
-  };  
-        const naoEstavaVendido = ani.status !== 'Vendido' || (ani.dataSaida && tratarData(ani.dataSaida).getTime() >= dataLimiteCusto.getTime());
+  const pVenda = dataVendaFim ? (pSaida * (parseFloat(precoKgVenda) || 0)) : (parseFloat(ani.precoVenda) || 0);
+  const custoTotalAteMomento = pCompra + totalTratoCalculado + rateioAcumulado;
+  const lucroLiq = pVenda - custoTotalAteMomento;
 
-      return atendeManejo && jaEstavaCadastrado && naoEstavaVendido;
-    
+  return {
+    diasCocho: diasFinais,
+    gpd: gpdCalculado,
+    totalTrato: totalTratoCalculado,
+    lucroLiquido: lucroLiq,
+    precoVenda: pVenda,
+    custoTotalAcumulado: custoTotalAteMomento,
+    apenasRateios: rateioAcumulado
+  };
+};
 
-    if (animaisAlvo.length === 0) {
-      exibirAlerta('Aviso', 'Nenhum bovino ativo encontrado para esta data.');
-      return;
-    }
+// 2. Função de aplicar manejo (Onde o código anterior estava solto)
+const aplicarManejoGlobal = () => {
+  // Filtro de animais
+  const animaisAlvo = animais.filter(ani => {
+    const atendeManejo = (filtroSetor === 'Todos' || ani.piqueManejo === filtroSetor);
+    const jaEstavaCadastrado = tratarData(ani.dataEntrada).getTime() <= tratarData(dataManejoGlobal).getTime();
+    const naoEstavaVendido = ani.status !== 'Vendido' || (ani.dataSaida && tratarData(ani.dataSaida).getTime() >= tratarData(dataManejoGlobal).getTime());
+    return atendeManejo && jaEstavaCadastrado && naoEstavaVendido;
+  });
 
-    const custoPorAnimal = valorTotal / animaisAlvo.length;
+  if (animaisAlvo.length === 0) {
+    exibirAlerta('Aviso', 'Nenhum bovino ativo encontrado para esta data.');
+    return;
+  }
 
-    const listaAtualizada = animais.map(ani => {
-      const pertenceAoGrupo = animaisAlvo.some(alvo => alvo.id === ani.id);
-      if (pertenceAoGrupo) {
-        const atual = parseFloat(ani.custoManejoAplicado) || 0;
-        const novoHist = {
-          idRateio: Math.random().toString(),
-          descricao: descricaoManejo,
-          dataCusto: dataManejoGlobal,
-          dataOriginalCusto: dataManejoGlobal,
-          valor: custoPorAnimal
-        };
-        const novaFicha = {
-          ...ani,
-          custoManejoAplicado: atual + custoPorAnimal,
-          historicoRateios: [...(ani.historicoRateios || []), novoHist]
-        };
+  const valorTotal = parseFloat(custoManejoGlobal) || 0;
+  const custoPorAnimal = valorTotal / animaisAlvo.length;
 
-        if (ani.status === 'Vendido') {
-          const metricas = calcularMetricasAnimal(novaFicha);
-          novaFicha.lucroLiquido = metricas.lucroLiquido;
-        }
-        return novaFicha;
+  const listaAtualizada = animais.map(ani => {
+    const pertenceAoGrupo = animaisAlvo.some(alvo => alvo.id === ani.id);
+    if (pertenceAoGrupo) {
+      const atual = parseFloat(ani.custoManejoAplicado) || 0;
+      const novoHist = {
+        idRateio: Math.random().toString(),
+        descricao: descricaoManejo,
+        dataCusto: dataManejoGlobal,
+        dataOriginalCusto: dataManejoGlobal,
+        valor: custoPorAnimal
+      };
+      const novaFicha = {
+        ...ani,
+        custoManejoAplicado: atual + custoPorAnimal,
+        historicoRateios: [...(ani.historicoRateios || []), novoHist]
+      };
+
+      if (ani.status === 'Vendido') {
+        const metricas = calcularMetricasAnimal(novaFicha);
+        novaFicha.lucroLiquido = metricas.lucroLiquido;
       }
-      return ani;
-    });
+      return novaFicha;
+    }
+    return ani;
+  });
 
-    salvarDadosLocais(listaAtualizada);
-    exibirAlerta('Sucesso', `R$ ${valorTotal.toFixed(2)} divididos entre ${animaisAlvo.length} cabeças.`);
-    setDescricaoManejo(''); setCustoManejoGlobal(''); setDataManejoGlobal('');
-
+  salvarDadosLocais(listaAtualizada);
+  exibirAlerta('Sucesso', `R$ ${valorTotal.toFixed(2)} divididos entre ${animaisAlvo.length} cabeças.`);
+  setDescricaoManejo(''); setCustoManejoGlobal(''); setDataManejoGlobal('');
+};
     // --- REMOVER UM LANÇAMENTO ESPECÍFICO DO HISTÓRICO DE RATEIOS ---
   const excluirCustoIndividual = (animalId, idRateio) => {
     const listaAtualizada = animais.map(ani => {
